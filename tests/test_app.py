@@ -40,7 +40,8 @@ def test_streamlit_results_first_layout(monkeypatch):
     # Team Remove All and Select All affect only that sidebar filter.
     app.button[4].click().run()
     assert app.multiselect[1].value == []
-    assert app.dataframe[0].value.empty
+    assert len(app.dataframe) == 0
+    assert any("No rows match" in item.value for item in app.warning)
 
     app.button[3].click().run()
     assert app.multiselect[1].value == ["AAA", "BBB"]

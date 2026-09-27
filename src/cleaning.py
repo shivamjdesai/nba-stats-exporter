@@ -91,6 +91,23 @@ def clean_basketball_reference_table(
     return df.reset_index(drop=True)
 
 
+def remove_blank_rows(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Remove rows containing only null, empty, or whitespace-only cells."""
+    if dataframe.empty:
+        return dataframe.copy().reset_index(drop=True)
+
+    has_content = pd.Series(False, index=dataframe.index)
+    for column in dataframe.columns:
+        values = dataframe[column]
+        column_has_content = values.notna()
+        if pd.api.types.is_object_dtype(values) or pd.api.types.is_string_dtype(values):
+            column_has_content &= (
+                values.astype("string").str.strip().ne("").fillna(False)
+            )
+        has_content |= column_has_content
+    return dataframe.loc[has_content].reset_index(drop=True)
+
+
 def get_available_columns(dataframe: pd.DataFrame) -> list[str]:
     return dataframe.columns.tolist()
 

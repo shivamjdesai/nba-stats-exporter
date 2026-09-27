@@ -13,6 +13,7 @@ from src.cleaning import (
     find_column,
     get_available_columns,
     get_numeric_columns,
+    remove_blank_rows,
     sort_stats,
 )
 from src.config import CACHE_TTL_SECONDS, COLUMN_GROUPS, DEFAULT_COLUMNS, STAT_TYPES
@@ -169,6 +170,13 @@ def _selection_summary(selected: list[str], total: int) -> str:
     if len(selected) == total:
         return "All"
     return f"{len(selected)} selected"
+
+
+def dataframe_height(row_count: int, *, maximum: int = 600) -> int:
+    """Fit short tables to their content while keeping long tables scrollable."""
+    header_height = 38
+    row_height = 35
+    return min(maximum, header_height + (max(row_count, 1) * row_height))
 
 
 def render_multiselect_popover(
@@ -403,7 +411,16 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
         st.warning("Select at least one column to preview and export data.")
         return
 
-    st.dataframe(final_data, width="stretch", hide_index=True, height=600)
+    if final_data.empty:
+        st.warning("No rows match the current filters.")
+        return
+
+    st.dataframe(
+        final_data,
+        width="stretch",
+        hide_index=True,
+        height=dataframe_height(len(final_data)),
+    )
 
     file_slug = str(STAT_TYPES[statistic_type]["slug"])
     render_downloads(
@@ -423,6 +440,7 @@ def render_standard_page(
     sheet_name: str,
     key_prefix: str,
 ) -> None:
+    dataframe = remove_blank_rows(dataframe)
     st.header(title)
     st.markdown(
         f'<div class="results-caption">{caption}</div>',
@@ -435,7 +453,12 @@ def render_standard_page(
     if dataframe.empty:
         st.warning("No data is currently available for this season.")
         return
-    st.dataframe(dataframe, width="stretch", hide_index=True, height=600)
+    st.dataframe(
+        dataframe,
+        width="stretch",
+        hide_index=True,
+        height=dataframe_height(len(dataframe)),
+    )
     render_downloads(
         dataframe,
         base_filename=base_filename,
@@ -452,6 +475,7 @@ def render_conference_standings_page(season: str) -> None:
         st.error(str(exc))
         return
 
+    standings = remove_blank_rows(standings)
     st.header(f"{season} NBA Conference Standings")
     st.markdown(
         '<div class="results-caption">Eastern and Western Conference standings, including playoff qualification markers.</div>',
@@ -479,7 +503,7 @@ def render_conference_standings_page(season: str) -> None:
                 conference_standings,
                 width="stretch",
                 hide_index=True,
-                height=600,
+                height=dataframe_height(len(conference_standings)),
             )
             conference_slug = conference.casefold()
             render_downloads(
@@ -530,8 +554,17 @@ def render_awards_and_honors_page(season: str) -> None:
     tabs = st.tabs(list(datasets))
     for tab, (dataset_name, dataframe) in zip(tabs, datasets.items()):
         with tab:
+            dataframe = remove_blank_rows(dataframe)
             st.caption(f"{len(dataframe)} selections")
-            st.dataframe(dataframe, width="stretch", hide_index=True, height=520)
+            if dataframe.empty:
+                st.warning(f"No {dataset_name} data is currently available for this season.")
+                continue
+            st.dataframe(
+                dataframe,
+                width="stretch",
+                hide_index=True,
+                height=dataframe_height(len(dataframe), maximum=520),
+            )
             slug = dataset_name.casefold().replace(" ", "_").replace("-", "_")
             render_downloads(
                 dataframe,

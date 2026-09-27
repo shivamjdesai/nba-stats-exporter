@@ -1,6 +1,11 @@
 import pandas as pd
 
-from src.cleaning import apply_filters, clean_basketball_reference_table, sort_stats
+from src.cleaning import (
+    apply_filters,
+    clean_basketball_reference_table,
+    remove_blank_rows,
+    sort_stats,
+)
 
 
 def sample_frame():
@@ -56,3 +61,18 @@ def test_unicode_names_are_normalized_and_search_is_accent_insensitive():
         "Nikola Jokić",
         "Nikola Jokić",
     ]
+
+
+def test_remove_blank_rows_treats_whitespace_as_empty():
+    frame = pd.DataFrame(
+        {
+            "Player": ["Nikola Jokić", "   ", None],
+            "Team": ["DEN", "", pd.NA],
+            "PTS": [29.6, None, float("nan")],
+        }
+    )
+
+    cleaned = remove_blank_rows(frame)
+
+    assert len(cleaned) == 1
+    assert cleaned.loc[0, "Player"] == "Nikola Jokić"
