@@ -148,4 +148,9 @@ def test_streamlit_navigation_loads_each_page_lazily(monkeypatch):
             assert app.dataframe[1].value["Team"].tolist() == ["OKC"]
 
     assert "All-Stars" not in app.radio[0].options
+    assert app.dataframe[0].value.columns[:2].tolist() == ["NBA Season", "Award"]
+    assert all(
+        dataframe.value.columns[:2].tolist() == ["NBA Season", "Selection"]
+        for dataframe in app.dataframe[1:4]
+    )
     assert app.dataframe[4].value["Player"].tolist() == ["Nikola Jokić"]

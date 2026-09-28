@@ -565,7 +565,11 @@ def render_awards_and_honors_page(season: str) -> None:
             if dataframe.empty:
                 st.warning(f"No {dataset_name} data is currently available for this season.")
                 continue
-            dataframe = add_nba_season_column(dataframe, season)
+            dataframe = add_nba_season_column(
+                dataframe,
+                season,
+                after_season=("Award", "Selection"),
+            )
             st.dataframe(
                 dataframe,
                 width="stretch",

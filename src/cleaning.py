@@ -106,13 +106,22 @@ def remove_blank_rows(dataframe: pd.DataFrame) -> pd.DataFrame:
     return dataframe.loc[has_content].reset_index(drop=True)
 
 
-def add_nba_season_column(dataframe: pd.DataFrame, season: str) -> pd.DataFrame:
-    """Add the selected season first and place common player identifiers next."""
+def add_nba_season_column(
+    dataframe: pd.DataFrame,
+    season: str,
+    *,
+    after_season: Sequence[str] = (),
+) -> pd.DataFrame:
+    """Add the selected season first, followed by requested and player identifiers."""
     frame = dataframe.drop(columns=["NBA Season"], errors="ignore").copy()
     frame.insert(0, "NBA Season", season)
 
     ordered = ["NBA Season"]
     lookup = {str(column).casefold(): str(column) for column in frame.columns}
+    for candidate in after_season:
+        column = lookup.get(candidate.casefold())
+        if column and column not in ordered:
+            ordered.append(column)
     for aliases in (("Player",), ("Team", "Tm"), ("Pos", "Position"), ("Age",)):
         for alias in aliases:
             column = lookup.get(alias.casefold())

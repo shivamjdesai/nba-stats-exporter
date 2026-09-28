@@ -101,3 +101,21 @@ def test_nba_season_is_first_and_player_identifiers_follow():
         "PTS",
     ]
     assert result["NBA Season"].tolist() == ["2025-26"]
+
+
+def test_award_or_selection_can_follow_nba_season():
+    frame = pd.DataFrame(
+        {
+            "Player": ["Shai Gilgeous-Alexander"],
+            "Team": ["OKC"],
+            "Award": ["Most Valuable Player"],
+        }
+    )
+
+    result = add_nba_season_column(
+        frame,
+        "2025-26",
+        after_season=("Award", "Selection"),
+    )
+
+    assert result.columns.tolist() == ["NBA Season", "Award", "Player", "Team"]
