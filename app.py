@@ -17,7 +17,13 @@ from src.cleaning import (
     remove_blank_rows,
     sort_stats,
 )
-from src.config import CACHE_TTL_SECONDS, COLUMN_GROUPS, DEFAULT_COLUMNS, STAT_TYPES
+from src.config import (
+    CACHE_TTL_SECONDS,
+    CONFERENCE_METRIC_DEFINITIONS,
+    DEFAULT_COLUMNS,
+    PLAYER_METRIC_DEFINITIONS,
+    STAT_TYPES,
+)
 from src.exporters import export_csv, export_excel
 from src.scraper import BasketballReferenceError, retrieve_stats
 from src.season_data import (
@@ -227,19 +233,22 @@ def render_multiselect_popover(
     return selected
 
 
-def render_metric_guide(columns: list[str]) -> None:
-    with st.popover("View metric guide", width="stretch"):
-        shown: set[str] = set()
-        for group, candidates in COLUMN_GROUPS.items():
-            available = [column for column in candidates if column in columns and column not in shown]
-            if available:
-                st.markdown(f"**{group}**")
-                st.caption(", ".join(available))
-                shown.update(available)
-        other = [column for column in columns if column not in shown]
-        if other:
-            st.markdown("**Additional source columns**")
-            st.caption(", ".join(other))
+def render_metric_definitions(
+    columns: list[str],
+    definitions: dict[str, str],
+    *,
+    note: str | None = None,
+) -> None:
+    """Show definitions for the metrics available on the current page."""
+    with st.popover("ⓘ Metric Definitions", width="stretch"):
+        if note:
+            st.caption(note)
+        for column in columns:
+            definition = definitions.get(
+                column,
+                "Basketball-Reference source field for the selected dataset.",
+            )
+            st.markdown(f"**{column}** — {definition}")
 
 
 def render_downloads(
@@ -322,7 +331,6 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
             reset_values=existing_defaults(columns),
         )
         st.caption(f"{len(selected_columns)} of {len(columns)} columns selected")
-        render_metric_guide(columns)
 
         st.divider()
         st.markdown('<div class="sidebar-section">Filters</div>', unsafe_allow_html=True)
@@ -395,6 +403,14 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
     st.markdown(
         '<div class="results-caption">Your current selections are reflected in the table and both downloads.</div>',
         unsafe_allow_html=True,
+    )
+    render_metric_definitions(
+        ["NBA Season", *columns],
+        PLAYER_METRIC_DEFINITIONS,
+        note=(
+            "Counting statistics are displayed as per-game averages when Per Game is selected "
+            "and as season totals when Totals is selected."
+        ),
     )
     metrics = st.columns(4)
     player_column = find_column(filtered, ("Player",))
@@ -481,6 +497,10 @@ def render_conference_standings_page(season: str) -> None:
     st.markdown(
         '<div class="results-caption">Eastern and Western Conference standings, including playoff qualification markers.</div>',
         unsafe_allow_html=True,
+    )
+    render_metric_definitions(
+        ["NBA Season", *standings.columns.tolist()],
+        CONFERENCE_METRIC_DEFINITIONS,
     )
 
     conference_column = find_column(standings, ("Conference",))

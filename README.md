@@ -14,6 +14,7 @@ A local multi-page Streamlit application that retrieves season data from Basketb
 - Player names are decoded and normalized as Unicode, preserving accents such as `Dončić`, `Jokić`, and `Vučević` in the app, CSV files, and Excel workbooks. Player search is accent-insensitive, so `Doncic` also matches `Dončić`.
 - Every preview and export includes `NBA Season` as its first column, populated from the selected season. Player tables then place Player, Team, Position, and Age before the remaining metrics.
 - Fully blank source rows are removed, and short previews resize to their content instead of showing empty grid outlines.
+- Player Statistics and Conference Standings include a main-page Metric Definitions control explaining each available abbreviation; the former sidebar metric guide has been removed.
 
 ## Available pages
 

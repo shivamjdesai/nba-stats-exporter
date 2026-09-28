@@ -44,6 +44,8 @@ def test_streamlit_results_first_layout(monkeypatch):
     assert app.dataframe[0].value["Player"].tolist() == ["Nikola Jokić", "Luka Dončić"]
     assert len(app.get("download_button")) == 2
     assert not any(item.value == "Select Columns" for item in app.subheader)
+    assert not any("Additional source columns" in item.value for item in app.markdown)
+    assert any("Field-goal percentage" in item.value for item in app.markdown)
 
     # Team Remove All and Select All affect only that sidebar filter.
     app.button[4].click().run()
@@ -90,7 +92,13 @@ def test_streamlit_navigation_loads_each_page_lazily(monkeypatch):
         src.season_data,
         "retrieve_conference_standings",
         lambda season: pd.DataFrame(
-            {"Conference": ["Eastern", "Western"], "Team": ["CLE", "OKC"]}
+            {
+                "Conference": ["Eastern", "Western"],
+                "Team": ["CLE", "OKC"],
+                "W": [64, 68],
+                "L": [18, 14],
+                "GB": ["—", "—"],
+            }
         ),
     )
     monkeypatch.setattr(
@@ -140,6 +148,7 @@ def test_streamlit_navigation_loads_each_page_lazily(monkeypatch):
         )
 
         if page == "Conference Standings":
+            assert any("Games behind" in item.value for item in app.markdown)
             assert [tab.label for tab in app.tabs] == [
                 "Eastern Conference",
                 "Western Conference",
