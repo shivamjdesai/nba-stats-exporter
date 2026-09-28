@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.cleaning import (
+    add_nba_season_column,
     apply_filters,
     clean_basketball_reference_table,
     remove_blank_rows,
@@ -76,3 +77,27 @@ def test_remove_blank_rows_treats_whitespace_as_empty():
 
     assert len(cleaned) == 1
     assert cleaned.loc[0, "Player"] == "Nikola Jokić"
+
+
+def test_nba_season_is_first_and_player_identifiers_follow():
+    frame = pd.DataFrame(
+        {
+            "Player": ["Nikola Jokić"],
+            "Age": [31],
+            "Team": ["DEN"],
+            "Pos": ["C"],
+            "PTS": [29.6],
+        }
+    )
+
+    result = add_nba_season_column(frame, "2025-26")
+
+    assert result.columns.tolist() == [
+        "NBA Season",
+        "Player",
+        "Team",
+        "Pos",
+        "Age",
+        "PTS",
+    ]
+    assert result["NBA Season"].tolist() == ["2025-26"]

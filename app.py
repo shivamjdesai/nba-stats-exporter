@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from src.cleaning import (
+    add_nba_season_column,
     apply_filters,
     clean_basketball_reference_table,
     find_column,
@@ -174,9 +175,7 @@ def _selection_summary(selected: list[str], total: int) -> str:
 
 def dataframe_height(row_count: int, *, maximum: int = 600) -> int:
     """Fit short tables to their content while keeping long tables scrollable."""
-    header_height = 38
-    row_height = 35
-    return min(maximum, header_height + (max(row_count, 1) * row_height))
+    return min(maximum, 38 + (max(row_count, 1) * 35))
 
 
 def render_multiselect_popover(
@@ -411,6 +410,7 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
         st.warning("Select at least one column to preview and export data.")
         return
 
+    final_data = add_nba_season_column(final_data, season)
     if final_data.empty:
         st.warning("No rows match the current filters.")
         return
@@ -434,13 +434,14 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
 def render_standard_page(
     dataframe: pd.DataFrame,
     *,
+    season: str,
     title: str,
     caption: str,
     base_filename: str,
     sheet_name: str,
     key_prefix: str,
 ) -> None:
-    dataframe = remove_blank_rows(dataframe)
+    dataframe = add_nba_season_column(remove_blank_rows(dataframe), season)
     st.header(title)
     st.markdown(
         f'<div class="results-caption">{caption}</div>',
@@ -449,7 +450,7 @@ def render_standard_page(
     summary = st.columns(3)
     summary[0].metric("Rows", len(dataframe))
     summary[1].metric("Columns", len(dataframe.columns))
-    summary[2].metric("Season", title.split(" NBA", 1)[0])
+    summary[2].metric("Season", season)
     if dataframe.empty:
         st.warning("No data is currently available for this season.")
         return
@@ -499,6 +500,10 @@ def render_conference_standings_page(season: str) -> None:
                 st.warning(f"No {conference} Conference standings are currently available.")
                 continue
 
+            conference_standings = add_nba_season_column(
+                conference_standings,
+                season,
+            )
             st.dataframe(
                 conference_standings,
                 width="stretch",
@@ -523,6 +528,7 @@ def render_playoff_series_page(season: str) -> None:
         return
     render_standard_page(
         series,
+        season=season,
         title=f"{season} NBA Playoff Series",
         caption="One row per completed playoff matchup; individual game rows are excluded.",
         base_filename=f"nba_{season}_playoff_series",
@@ -559,6 +565,7 @@ def render_awards_and_honors_page(season: str) -> None:
             if dataframe.empty:
                 st.warning(f"No {dataset_name} data is currently available for this season.")
                 continue
+            dataframe = add_nba_season_column(dataframe, season)
             st.dataframe(
                 dataframe,
                 width="stretch",

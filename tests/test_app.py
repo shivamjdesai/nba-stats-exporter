@@ -32,7 +32,15 @@ def test_streamlit_results_first_layout(monkeypatch):
 
     assert not app.exception
     assert app.header[0].value.endswith("NBA Player Statistics — Per Game")
-    assert app.dataframe[0].value.shape == (2, 9)
+    assert app.dataframe[0].value.shape == (2, 10)
+    assert app.dataframe[0].value.columns[:5].tolist() == [
+        "NBA Season",
+        "Player",
+        "Team",
+        "Pos",
+        "Age",
+    ]
+    assert app.dataframe[0].value["NBA Season"].tolist() == ["2025-26", "2025-26"]
     assert app.dataframe[0].value["Player"].tolist() == ["Nikola Jokić", "Luka Dončić"]
     assert len(app.get("download_button")) == 2
     assert not any(item.value == "Select Columns" for item in app.subheader)
@@ -122,6 +130,14 @@ def test_streamlit_navigation_loads_each_page_lazily(monkeypatch):
         assert heading in app.header[0].value
         assert len(app.dataframe) == table_count
         assert len(app.get("download_button")) == download_count
+        assert all(
+            dataframe.value.columns[0] == "NBA Season"
+            for dataframe in app.dataframe
+        )
+        assert all(
+            dataframe.value["NBA Season"].eq("2025-26").all()
+            for dataframe in app.dataframe
+        )
 
         if page == "Conference Standings":
             assert [tab.label for tab in app.tabs] == [

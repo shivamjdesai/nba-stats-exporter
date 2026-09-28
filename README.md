@@ -12,6 +12,7 @@ A local multi-page Streamlit application that retrieves season data from Basketb
 - Streamlit caches the cleaned table for six hours by season and statistic type. Changing columns, filters, or sorting uses the cached data and does not request the website again.
 - Multi-team player records remain separate. Only empty rows, repeated in-table headers, and the rank column are removed.
 - Player names are decoded and normalized as Unicode, preserving accents such as `Dončić`, `Jokić`, and `Vučević` in the app, CSV files, and Excel workbooks. Player search is accent-insensitive, so `Doncic` also matches `Dončić`.
+- Every preview and export includes `NBA Season` as its first column, populated from the selected season. Player tables then place Player, Team, Position, and Age before the remaining metrics.
 - Fully blank source rows are removed, and short previews resize to their content instead of showing empty grid outlines.
 
 ## Available pages

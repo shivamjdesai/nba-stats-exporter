@@ -101,11 +101,26 @@ def remove_blank_rows(dataframe: pd.DataFrame) -> pd.DataFrame:
         values = dataframe[column]
         column_has_content = values.notna()
         if pd.api.types.is_object_dtype(values) or pd.api.types.is_string_dtype(values):
-            column_has_content &= (
-                values.astype("string").str.strip().ne("").fillna(False)
-            )
+            column_has_content &= values.astype("string").str.strip().ne("").fillna(False)
         has_content |= column_has_content
     return dataframe.loc[has_content].reset_index(drop=True)
+
+
+def add_nba_season_column(dataframe: pd.DataFrame, season: str) -> pd.DataFrame:
+    """Add the selected season first and place common player identifiers next."""
+    frame = dataframe.drop(columns=["NBA Season"], errors="ignore").copy()
+    frame.insert(0, "NBA Season", season)
+
+    ordered = ["NBA Season"]
+    lookup = {str(column).casefold(): str(column) for column in frame.columns}
+    for aliases in (("Player",), ("Team", "Tm"), ("Pos", "Position"), ("Age",)):
+        for alias in aliases:
+            column = lookup.get(alias.casefold())
+            if column and column not in ordered:
+                ordered.append(column)
+                break
+    ordered.extend(column for column in frame.columns if column not in ordered)
+    return frame.loc[:, ordered]
 
 
 def get_available_columns(dataframe: pd.DataFrame) -> list[str]:
