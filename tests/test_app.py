@@ -155,6 +155,12 @@ def test_streamlit_navigation_loads_each_page_lazily(monkeypatch):
             ]
             assert app.dataframe[0].value["Team"].tolist() == ["CLE"]
             assert app.dataframe[1].value["Team"].tolist() == ["OKC"]
+        elif page == "Playoff Series":
+            assert any("Team that won the playoff series" in item.value for item in app.markdown)
+            assert any("Final series result" in item.value for item in app.markdown)
+        elif page == "Awards & Honors":
+            assert any("League award won" in item.value for item in app.markdown)
+            assert any("honor selection" in item.value for item in app.markdown)
 
     assert "All-Stars" not in app.radio[0].options
     assert app.dataframe[0].value.columns[:2].tolist() == ["NBA Season", "Award"]

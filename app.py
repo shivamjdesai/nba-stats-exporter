@@ -18,9 +18,11 @@ from src.cleaning import (
     sort_stats,
 )
 from src.config import (
+    AWARDS_HONORS_METRIC_DEFINITIONS,
     CACHE_TTL_SECONDS,
     CONFERENCE_METRIC_DEFINITIONS,
     DEFAULT_COLUMNS,
+    PLAYOFF_METRIC_DEFINITIONS,
     PLAYER_METRIC_DEFINITIONS,
     STAT_TYPES,
 )
@@ -456,6 +458,7 @@ def render_standard_page(
     base_filename: str,
     sheet_name: str,
     key_prefix: str,
+    metric_definitions: dict[str, str] | None = None,
 ) -> None:
     dataframe = add_nba_season_column(remove_blank_rows(dataframe), season)
     st.header(title)
@@ -463,6 +466,11 @@ def render_standard_page(
         f'<div class="results-caption">{caption}</div>',
         unsafe_allow_html=True,
     )
+    if metric_definitions:
+        render_metric_definitions(
+            dataframe.columns.tolist(),
+            metric_definitions,
+        )
     summary = st.columns(3)
     summary[0].metric("Rows", len(dataframe))
     summary[1].metric("Columns", len(dataframe.columns))
@@ -554,6 +562,7 @@ def render_playoff_series_page(season: str) -> None:
         base_filename=f"nba_{season}_playoff_series",
         sheet_name="Playoff Series",
         key_prefix="playoffs",
+        metric_definitions=PLAYOFF_METRIC_DEFINITIONS,
     )
 
 
@@ -576,6 +585,21 @@ def render_awards_and_honors_page(season: str) -> None:
     st.markdown(
         '<div class="results-caption">League award winners, official honor teams, and All-Star selections.</div>',
         unsafe_allow_html=True,
+    )
+    available_columns = {
+        str(column)
+        for dataframe in datasets.values()
+        for column in dataframe.columns
+    }
+    available_columns.add("NBA Season")
+    definition_columns = [
+        column
+        for column in AWARDS_HONORS_METRIC_DEFINITIONS
+        if column in available_columns
+    ]
+    render_metric_definitions(
+        definition_columns,
+        AWARDS_HONORS_METRIC_DEFINITIONS,
     )
     tabs = st.tabs(list(datasets))
     for tab, (dataset_name, dataframe) in zip(tabs, datasets.items()):

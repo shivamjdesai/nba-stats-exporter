@@ -95,6 +95,38 @@ CONFERENCE_METRIC_DEFINITIONS = OrderedDict(
     }
 )
 
+PLAYOFF_METRIC_DEFINITIONS = OrderedDict(
+    {
+        "NBA Season": "Selected NBA season represented by the row.",
+        "Round": "Playoff round in which the series was played.",
+        "Winner": "Team that won the playoff series.",
+        "Loser": "Team eliminated in the playoff series.",
+        "Series": "Final series result, shown as winner games to loser games.",
+    }
+)
+
+AWARDS_HONORS_METRIC_DEFINITIONS = OrderedDict(
+    {
+        "NBA Season": "Selected NBA season represented by the row.",
+        "Award": "League award won by the player.",
+        "Selection": "First, Second, or Third Team honor selection.",
+        "Player": "Player name.",
+        "Team": "Team abbreviation for the selected season.",
+        "Tm": "Team abbreviation for the selected season.",
+        "Pos": "Primary position played.",
+        "Position": "Primary position played.",
+        "Age": "Player age during the selected season.",
+        "Vote Share": "Share of the available award voting points received.",
+        "G": "Games played.",
+        "MP": "Minutes played per game.",
+        "PTS": "Points scored per game.",
+        "TRB": "Total rebounds per game.",
+        "AST": "Assists per game.",
+        "STL": "Steals per game.",
+        "BLK": "Blocks per game.",
+    }
+)
+
 TEXT_COLUMNS = {
     "Player",
     "Team",
