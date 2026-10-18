@@ -8,7 +8,7 @@ A local multi-page Streamlit application that retrieves season data from Basketb
 - `Per Game` maps to `_per_game.html`; `Totals` maps to `_totals.html`.
 - The scraper selects the configured player table by HTML id and also supports tables wrapped in HTML comments.
 - The available metric list is discovered from each retrieved table; statistics are not hard-coded into the scraper.
-- Dataset, column, filter, and sorting controls live in the compact sidebar so the main page remains focused on the results.
+- Dataset, column, and sorting controls live in the compact sidebar. Player filters appear in an expandable section directly above the results table.
 - Streamlit caches the cleaned table for six hours by season and statistic type. Changing columns, filters, or sorting uses the cached data and does not request the website again.
 - Multi-team player records remain separate. Only empty rows, repeated in-table headers, and the rank column are removed.
 - Player names are decoded and normalized as Unicode, preserving accents such as `Dončić`, `Jokić`, and `Vučević` in the app, CSV files, and Excel workbooks. Player search is accent-insensitive, so `Doncic` also matches `Dončić`.

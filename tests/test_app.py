@@ -47,17 +47,22 @@ def test_streamlit_results_first_layout(monkeypatch):
     assert app.dataframe[0].value["Player"].tolist() == ["Nikola Jokić", "Luka Dončić"]
     assert len(app.get("download_button")) == 2
     assert not any(item.value == "Select Columns" for item in app.subheader)
+    assert app.expander[0].label == "Filters"
+    assert not any(
+        item.value == '<div class="sidebar-section">Filters</div>'
+        for item in app.markdown
+    )
     assert not any("Additional source columns" in item.value for item in app.markdown)
     assert any("Field-goal percentage" in item.value for item in app.markdown)
 
-    # Team Remove All and Select All affect only that sidebar filter.
-    app.button[4].click().run()
-    assert app.multiselect[1].value == []
+    # Team Remove All and Select All affect only the main-page team filter.
+    app.get_by_key("selected_teams_remove_all").click().run()
+    assert app.get_by_key("selected_teams").value == []
     assert len(app.dataframe) == 0
     assert any("No rows match" in item.value for item in app.warning)
 
-    app.button[3].click().run()
-    assert app.multiselect[1].value == ["AAA", "BBB"]
+    app.get_by_key("selected_teams_select_all").click().run()
+    assert app.get_by_key("selected_teams").value == ["AAA", "BBB"]
     assert len(app.dataframe[0].value) == 2
 
     # Unaccented input still finds and displays the correctly accented name.
@@ -66,12 +71,12 @@ def test_streamlit_results_first_layout(monkeypatch):
     app.text_input[0].input("").run()
 
     # Column removal suppresses preview/downloads until defaults are restored.
-    app.button[1].click().run()
-    assert app.multiselect[0].value == []
+    app.get_by_key("selected_columns_remove_all").click().run()
+    assert app.get_by_key("selected_columns").value == []
     assert len(app.dataframe) == 0
     assert any("Select at least one column" in item.value for item in app.warning)
 
-    app.button[2].click().run()
+    app.get_by_key("selected_columns_reset").click().run()
     assert len(app.dataframe) == 1
     assert len(app.get("download_button")) == 2
 

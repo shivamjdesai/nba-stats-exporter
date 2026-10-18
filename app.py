@@ -311,6 +311,11 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
         if position_column
         else []
     )
+    max_games = (
+        int(pd.to_numeric(stats[games_column], errors="coerce").max())
+        if games_column and pd.to_numeric(stats[games_column], errors="coerce").notna().any()
+        else 0
+    )
 
     selection_id = f"{season}|{statistic_type}"
     if st.session_state.get("selection_id") != selection_id:
@@ -336,40 +341,6 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
         st.caption(f"{len(selected_columns)} of {len(columns)} columns selected")
 
         st.divider()
-        st.markdown('<div class="sidebar-section">Filters</div>', unsafe_allow_html=True)
-        teams = render_multiselect_popover(
-            "Teams",
-            team_options,
-            state_key="selected_teams",
-            default_values=team_options,
-        )
-        positions = render_multiselect_popover(
-            "Positions",
-            position_options,
-            state_key="selected_positions",
-            default_values=position_options,
-        )
-        player_search = st.text_input(
-            "Search Player",
-            key="player_search",
-            placeholder="e.g. curry",
-        )
-        max_games = (
-            int(pd.to_numeric(stats[games_column], errors="coerce").max())
-            if games_column and pd.to_numeric(stats[games_column], errors="coerce").notna().any()
-            else 0
-        )
-        if int(st.session_state.get("minimum_games", 0)) > max_games:
-            st.session_state["minimum_games"] = max_games
-        minimum_games = st.number_input(
-            "Minimum Games Played",
-            min_value=0,
-            max_value=max_games,
-            step=1,
-            key="minimum_games",
-        )
-
-        st.divider()
         st.markdown('<div class="sidebar-section">Sorting</div>', unsafe_allow_html=True)
         numeric_selected = get_numeric_columns(stats, selected_columns)
         sort_options = ["Source order", *numeric_selected]
@@ -388,6 +359,53 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
         )
         st.caption("Source: Basketball-Reference")
 
+    st.header(f"{season} NBA Player Statistics — {statistic_type}")
+    st.markdown(
+        '<div class="results-caption">Your current selections are reflected in the table and both downloads.</div>',
+        unsafe_allow_html=True,
+    )
+    render_metric_definitions(
+        ["NBA Season", *columns],
+        PLAYER_METRIC_DEFINITIONS,
+        note=(
+            "Counting statistics are displayed as per-game averages when Per Game is selected "
+            "and as season totals when Totals is selected."
+        ),
+    )
+
+    if int(st.session_state.get("minimum_games", 0)) > max_games:
+        st.session_state["minimum_games"] = max_games
+    with st.expander("Filters", expanded=True):
+        filter_columns = st.columns((1.1, 1.1, 1.4, 1.0))
+        with filter_columns[0]:
+            teams = render_multiselect_popover(
+                "Teams",
+                team_options,
+                state_key="selected_teams",
+                default_values=team_options,
+            )
+        with filter_columns[1]:
+            positions = render_multiselect_popover(
+                "Positions",
+                position_options,
+                state_key="selected_positions",
+                default_values=position_options,
+            )
+        with filter_columns[2]:
+            player_search = st.text_input(
+                "Search Player",
+                key="player_search",
+                placeholder="e.g. curry",
+            )
+        with filter_columns[3]:
+            minimum_games = st.number_input(
+                "Minimum Games Played",
+                min_value=0,
+                max_value=max_games,
+                step=1,
+                key="minimum_games",
+            )
+
     filtered = apply_filters(
         stats,
         teams=teams if team_column else None,
@@ -402,19 +420,6 @@ def render_player_statistics_page(season: str, statistic_type: str) -> None:
     )
     final_data = sorted_data.loc[:, selected_columns] if selected_columns else sorted_data.iloc[:, 0:0]
 
-    st.header(f"{season} NBA Player Statistics — {statistic_type}")
-    st.markdown(
-        '<div class="results-caption">Your current selections are reflected in the table and both downloads.</div>',
-        unsafe_allow_html=True,
-    )
-    render_metric_definitions(
-        ["NBA Season", *columns],
-        PLAYER_METRIC_DEFINITIONS,
-        note=(
-            "Counting statistics are displayed as per-game averages when Per Game is selected "
-            "and as season totals when Totals is selected."
-        ),
-    )
     metrics = st.columns(4)
     player_column = find_column(filtered, ("Player",))
     unique_players = (
