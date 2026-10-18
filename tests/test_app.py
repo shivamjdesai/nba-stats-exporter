@@ -31,6 +31,9 @@ def test_streamlit_results_first_layout(monkeypatch):
     app = AppTest.from_file(str(app_path), default_timeout=20).run()
 
     assert not app.exception
+    styles = app.markdown[0].value
+    assert '[data-testid="stSidebar"][aria-expanded="true"]' in styles
+    assert '[data-testid="stSidebar"] {' not in styles
     assert app.header[0].value.endswith("NBA Player Statistics — Per Game")
     assert app.dataframe[0].value.shape == (2, 10)
     assert app.dataframe[0].value.columns[:5].tolist() == [

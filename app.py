@@ -55,7 +55,8 @@ st.set_page_config(
 
 APP_STYLES = """
 <style>
-    [data-testid="stSidebar"] {
+    [data-testid="stSidebar"][aria-expanded="true"] {
+        width: 350px;
         min-width: 350px;
         max-width: 350px;
     }
